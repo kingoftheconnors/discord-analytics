@@ -31,7 +31,17 @@ client.on('message', msg => {
   var arguments = msg.content.split(" ")
   if (arguments[0] === '!stats') {
     var username = arguments[1]
+    if (typeof username === 'undefined') {
+      msg.channel.send('Please specify a username. Example: `!stats foobar#1234`')
+      return;
+    }
+
     db.select().table('user_activity').where({username: username}).then( (rows) => {
+      if( !(rows.length > 0) ) {
+        msg.channel.send(`No such user: ${username}`)
+        return
+      }
+
       var responseMsg = ""
       rows.forEach( (event) => {
         timestamp = moment(event.timestamp).format()
