@@ -3,6 +3,7 @@ require("dotenv").config();
 const db = require("./config/db");
 const exportGraph = require("./lib/chart");
 const { getDayNumber, getDayName } = require("./lib/time");
+const ChatEvent = require("./model/chat_event");
 const Discord = require("discord.js");
 const moment = require("moment");
 const exporter = require("highcharts-export-server");
@@ -18,8 +19,7 @@ client.on("ready", () => {
 client.on("presenceUpdate", msg => {
   var activityRecord = {
     username: msg.user.tag,
-    status: msg.user.presence.status,
-    timestamp: moment()
+    status: msg.user.presence.status
   };
 
   // Save to database
@@ -34,6 +34,15 @@ client.on("presenceUpdate", msg => {
 });
 
 client.on("message", msg => {
+  // Persist the text chat event (no message contents)
+  var chatEvent = new ChatEvent({
+    username: msg.author.tag,
+    length: msg.content.length,
+    attachments: msg.attachments.size,
+    interaction_type: "text"
+  });
+  chatEvent.save();
+
   var command = msg.content.split(" ");
 
   if (command[0] === "!available") {
@@ -165,7 +174,7 @@ function getBestTimeAndDay(msg, username) {
 
       // Export graph data to a file
       msg.channel.send(
-        `Most active time for ${username} is ${mostActiveTime}:00 on ${mostActiveDay}s.`
+        `Most active time for ${username} is after ${mostActiveTime}:00 on ${mostActiveDay}s.`
       );
     })
     .catch(error => {
@@ -202,7 +211,7 @@ function getBestTime(msg, username, day) {
       msg.channel.send(
         `Most active time for ${username} on ${getDayName(
           day
-        )}s is ${mostActiveTime}.`
+        )}s is after ${mostActiveTime}.`
       );
     })
     .catch(error => {
@@ -215,6 +224,7 @@ function getBestTime(msg, username, day) {
 
 function getActiveTimes(rows, day) {
   var hour = 0;
+  var minute = 0;
   var prevSwitch = false;
   var onlineSwitch = false;
   var curDay = 0;
@@ -239,17 +249,24 @@ function getActiveTimes(rows, day) {
           }
         }
         hour = 0;
+        minute = 0;
         curDay = curStamp.date();
       }
 
       //If online, set hour
       if (onlineSwitch == true) {
         hour = curStamp.hour();
+        minute = curStamp.minute();
       } else if (prevSwitch == true) {
         //If offline, increment all values between hour and time stamp
         for (var i = hour; i <= curStamp.hour(); i++) {
-          console.log("Adding 1 to " + i);
-          barArray[i]++;
+          //If there is little distance between signing on and off, don't count 5-minute visits
+          if (hour == curStamp.hour() && curStamp.minute() - minute < 10) {
+            //Do nothing
+          } else {
+            console.log("Adding 1 to " + i);
+            barArray[i]++;
+          }
         }
       }
     }
