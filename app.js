@@ -135,14 +135,15 @@ function createGraph(msg, username, day) {
             barArray[i]++;
           }
         }
-
-        //If day ends and user is online, go from hour to 23 and increment
-        if (onlineSwitch == true) {
-          for (var i = hour; i < 24; i++) {
-            barArray[i]++;
-          }
-        }
       });
+
+      //If day ends and user is online, go from hour to 23 and increment
+      if (onlineSwitch == true) {
+        for (var i = hour; i < 24; i++) {
+          barArray[i]++;
+          console.log("Adding 1 to " + i);
+        }
+      }
     })
     .catch(error => {
       msg.channel.send(
@@ -153,9 +154,9 @@ function createGraph(msg, username, day) {
 
   // Export graph data to a file
   console.log(barArray);
-  exportGraph(barArray);
+  var exportedChartFileName = exportGraph(barArray, username);
   setImmediate(() => {
-    var chartAttachment = new Discord.Attachment("out.png");
+    var chartAttachment = new Discord.Attachment(exportedChartFileName);
     msg.channel.send("Here's " + username + "'s chart:", chartAttachment);
   });
 }

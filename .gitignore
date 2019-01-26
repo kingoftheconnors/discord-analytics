@@ -5,3 +5,7 @@ node_modules
 
 # Generated
 *.png
+
+# Temporary things
+tmp/*
+!tmp/.gitkeep
