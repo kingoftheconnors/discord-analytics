@@ -5,7 +5,6 @@ const exportGraph = require('./lib/chart')
 const Discord = require('discord.js')
 const moment = require('moment')
 const client = new Discord.Client()
-var userTimes = {}
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
@@ -14,12 +13,6 @@ client.on('ready', () => {
 client.on('presenceUpdate', msg => {
   console.log(`${msg.user.username}#${msg.user.discriminator}: ${msg.user.presence.status}`)
 
-  if (!userTimes[msg.user.username]) {
-    userTimes[msg.user.username] = []
-  }
-
-  userTimes[msg.user.username].push(importantStuff)
-
   var importantStuff = {
     username: `${msg.user.username}#${msg.user.discriminator}`,
     status: msg.user.presence.status,
@@ -27,30 +20,33 @@ client.on('presenceUpdate', msg => {
   }
   
   //Push to database
-    console.log("Adding to database")
-    db('user_activity').insert(importantStuff).then( (result) => {
-      console.log(result)
-    })
+  console.log("Adding to database")
+  db('user_activity').insert(importantStuff).then( (result) => {
+    console.log(result)
+  })
 });
 
 
 client.on('message', msg => {
   var arguments = msg.content.split(" ")
   if (arguments[0] === '!stats') {
-    console.log(userTimes)
-    msg.channel.send(formatTimes())
-  }
-  if (arguments[0] === '!chart') {
-    exportGraph([1, 6, 2, 3, 8, 20, 12, 9, 1, 2]);
-    setImmediate(()=>{
-      var chartAttachment = new Discord.Attachment('out.png')
-      msg.channel.send("Here is an image:", chartAttachment)
+    var username = arguments[1]
+    db.select().table('user_activity').where({username: username}).then( (rows) => {
+      var responseMsg = ""
+      rows.forEach( (event) => {
+        timestamp = moment(event.timestamp).format()
+        responseMsg += `${event.username}: ${event.status} at ${timestamp}\n`
+      })
+  
+      msg.channel.send(responseMsg)
+    }).catch( (error) => {
+      msg.channel.send(`Failed to retrieve information for ${username}: ${error}`)
     })
   }
   if (arguments[0] === '!available') {
-    //var barArray = createGraph(arguments[1], arguments[2])
-    //exportGraph(barArray);
-    exportGraph([1, 6, 2, 3, 8, 20, 12, 9, 1, 2]);
+    var barArray = createGraph(arguments[1], arguments[2])
+    exportGraph(barArray);
+    //exportGraph([1, 6, 2, 3, 8, 20, 12, 9, 1, 2]);
     setImmediate(()=>{
       var chartAttachment = new Discord.Attachment('out.png')
       msg.channel.send("Here's " + arguments[1] + "'s chart:", chartAttachment)
@@ -61,21 +57,12 @@ client.on('message', msg => {
 
 client.login(process.env.BOT_TOKEN)
 
-function formatTimes() {
-  var retVal = ""
-  Object.keys(userTimes).forEach( (username) =>{
-    userTimes[username].forEach( (event) => {
-      retVal += `${event.username}: ${event.status} at ${event.timestamp.format()}\n`
-    })
-  })
-  
-  return retVal
-}
 /*
 function createGraph(username, timeStamp) {
-  var hour = 0;
-  var onlineSwitch = true;
-  var curDay = 0;
+  var hour = 0
+  var prevSwitch = true
+  var onlineSwitch = true
+  var curDay = 0
 
   var barArray = new Array(24).fill(0);
 
@@ -83,6 +70,7 @@ function createGraph(username, timeStamp) {
 
   {
     //Boolean variable that is true when online and false when offline
+    prevSwitch = onlineSwitch
     onlineSwitch = 
     //Moment.js object
     var curStamp = 
@@ -97,9 +85,9 @@ function createGraph(username, timeStamp) {
     if(onlineSwitch == true) {
       hour = curStamp.hour()
     }
-    else {
+    else if(prevSwitch == true) {
       //If offline, increment all values between hour and time stamp
-      for(var i=hour; i < curStamp.hour(); i++) {
+      for(var i=hour; i <= curStamp.hour(); i++) {
         barArray[i]++
       }
     }
