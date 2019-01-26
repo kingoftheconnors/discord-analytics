@@ -15,7 +15,7 @@ cp .env.example .env
 bin/setup
 
 # Setup the application (windows)
-bin\setup.cmd
+.\bin\setup.cmd
 
 # Run main program
 node main.js

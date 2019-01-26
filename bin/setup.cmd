@@ -1,9 +1,9 @@
 
-# Install NPM packages
+REM Install NPM packages
 npm install
 
-# Create databases
+REM Create databases
 psql -c 'create database discordanalytics_dev;'
 
-# Migrate databases
+REM Migrate databases
 node ./node_modules/.bin/knex migrate:latest
