@@ -1,6 +1,6 @@
 require('dotenv').config()
 
-//const db = require('./config/db')
+const db = require('./config/db')
 const exportGraph = require('./lib/chart')
 const Discord = require('discord.js')
 const moment = require('moment')
@@ -62,16 +62,28 @@ function createGraph() {
   var barArray = new Array(24).fill(0);
 
   //For all timeStamps for username on weekday...
+
+  {
     //If online, set hour
 
     //If offline, increment all values between hour and time stamp
     for(var i=hour; i < ; i++) {
+      barArray[i]++
     }
 
-    //If day ends and user is online, go from hour to 23 and increment
-
+  }
+  //If day ends and user is online, go from hour to 23 and increment
+  if(onlineSwitch == true) {
+    for(var i=hour; i < 24; i++) {
+      barArray[i]++
+    }
+  }
 
   //Create graph
+  exportGraph(barArray);
+  setImmediate(()=>{
+    var chartAttachment = new Discord.Attachment('out.png')
+    msg.channel.send("Here is an image:", chartAttachment)
   
 }
 */
