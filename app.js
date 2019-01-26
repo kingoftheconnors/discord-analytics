@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const db = require("./config/db");
 const { exportGraph, exportWeeklyGraph } = require("./lib/chart");
+const { exportChat, exportWeeklyChat } = require("./lib/chatChart");
 const { getDayNumber, getDayName } = require("./lib/time");
 const ChatEvent = require("./models/chat_event");
 const Discord = require("discord.js");
@@ -33,6 +34,7 @@ client.on("presenceUpdate", msg => {
     });
 });
 
+// hello <@121393624909873152>
 client.on("message", msg => {
   // Persist the text chat event (no message contents)
   var chatEvent = new ChatEvent({
@@ -217,7 +219,7 @@ function createChatGraph(msg, username, day) {
 
       // Export graph data to a file
       console.log(barArray);
-      exportGraph(barArray, username).then(
+      exportChat(barArray, username).then(
         exportedChartFileName => {
           var chartAttachment = new Discord.Attachment(exportedChartFileName);
           msg.channel.send("Here's " + username + "'s chart:", chartAttachment);
@@ -252,7 +254,7 @@ function createWeeklyChatGraph(msg, username) {
 
       // Export graph data to a file
       console.log(barArray);
-      exportWeeklyGraph(barArray, username).then(
+      exportWeeklyChat(barArray, username).then(
         exportedChartFileName => {
           var chartAttachment = new Discord.Attachment(exportedChartFileName);
           msg.channel.send("Here's " + username + "'s chart:", chartAttachment);
