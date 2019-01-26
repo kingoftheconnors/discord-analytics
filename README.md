@@ -3,7 +3,7 @@
 ## Requirements
 
  - Node.js
- - PostgreSQL
+ - PostgreSQL (`postgres` superuser with empty password)
 
 ## Getting started
 

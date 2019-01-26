@@ -68,14 +68,24 @@ function formatTimes() {
 function createGraph(username, timeStamp) {
   var hour = 0;
   var onlineSwitch = true;
+  var curDay = 0;
 
   var barArray = new Array(24).fill(0);
 
   //For all records for username on weekday...
 
   {
+    //Boolean variable that is true when online and false when offline
     onlineSwitch = 
+    //Moment.js object
     var curStamp = 
+
+    //Check if this stamp's day is a week later than the current one
+    if(curStamp.date() != curDay) {
+      hour = 0;
+      curDay = curStamp.date()
+    }
+
     //If online, set hour
     if(onlineSwitch == true) {
       hour = curStamp.hour()
@@ -87,6 +97,7 @@ function createGraph(username, timeStamp) {
       }
     }
   }
+
   //If day ends and user is online, go from hour to 23 and increment
   if(onlineSwitch == true) {
     for(var i=hour; i < 24; i++) {

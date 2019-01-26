@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Stop running if any part of this script fails
+set -e
+
+# Install NPM packages
+npm install
+
+# Create databases
+psql -c 'create database discordanalytics_dev;'
+
+# Migrate databases
+bin/knex migrate:latest
