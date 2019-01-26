@@ -35,40 +35,6 @@ client.on("presenceUpdate", msg => {
 
 client.on("message", msg => {
   var command = msg.content.split(" ");
-  if (command[0] === "!stats") {
-    if (command.length < 2) {
-      msg.channel.send(
-        "Please specify a username. Example: `!stats foobar#1234`"
-      );
-      return;
-    }
-
-    var username = command[1];
-
-    db.select()
-      .table("user_activity")
-      .where({ username: username })
-      .then(rows => {
-        if (!(rows.length > 0)) {
-          msg.channel.send(`No such user: ${username}`);
-          return;
-        }
-
-        var responseMsg = "";
-        rows.forEach(event => {
-          timestamp = moment(event.timestamp).format();
-          responseMsg += `${event.username}: ${event.status} at ${timestamp}\n`;
-        });
-
-        msg.channel.send(responseMsg);
-      })
-      .catch(error => {
-        msg.channel.send(
-          `An error occurred while fetching activity for ${username}.`
-        );
-        console.log(error);
-      });
-  }
 
   if (command[0] === "!available") {
     if (command.length < 2) {
@@ -174,7 +140,10 @@ function createGraph(msg, username, day) {
 }
 
 function getBestTimeAndDay(msg, username) {
-  //
+  var mostActiveTime = 0;
+  var activeLevel = 0;
+  var mostActiveDay = "not available";
+
   db.select()
     .table("user_activity")
     .where({ username: username })
@@ -183,10 +152,6 @@ function getBestTimeAndDay(msg, username) {
         msg.channel.send(`No such user online on that day: ${username}`);
         return;
       }
-
-      var mostActiveTime = 0;
-      var activeLevel = 0;
-      var mostActiveDay = "not available";
       for (var day = 0; day < 7; day++) {
         var barArray = getActiveTimes(rows, day);
         barArray.forEach((element, index) => {
@@ -216,6 +181,7 @@ function getBestTime(msg, username, day) {
   db.select()
     .table("user_activity")
     .where({ username: username })
+    .whereRaw("extract(dow from timestamp) = ?", day)
     .then(rows => {
       if (!(rows.length > 0)) {
         msg.channel.send(`No such user online on that day: ${username}`);
@@ -257,32 +223,34 @@ function getActiveTimes(rows, day) {
 
   //For all records for username on weekday...
   rows.forEach(event => {
-    //Boolean variable that is true when online and false when offline
-    prevSwitch = onlineSwitch;
-    onlineSwitch = event.status === "online";
-    //Moment.js object
-    var curStamp = moment(event.timestamp);
+    if (moment(event.timestamp).day() == day) {
+      //Boolean variable that is true when online and false when offline
+      prevSwitch = onlineSwitch;
+      onlineSwitch = event.status === "online";
+      //Moment.js object
+      var curStamp = moment(event.timestamp);
 
-    //Check if this stamp's day is a week later than the current one
-    if (curStamp.date() != curDay) {
-      //If day ends and user is online, go from hour to 23 and increment
-      if (prevSwitch == true) {
-        for (var i = hour; i < 24; i++) {
+      //Check if this stamp's day is a week later than the current one
+      if (curStamp.date() != curDay) {
+        //If day ends and user is online, go from hour to 23 and increment
+        if (prevSwitch == true) {
+          for (var i = hour; i < 24; i++) {
+            barArray[i]++;
+          }
+        }
+        hour = 0;
+        curDay = curStamp.date();
+      }
+
+      //If online, set hour
+      if (onlineSwitch == true) {
+        hour = curStamp.hour();
+      } else if (prevSwitch == true) {
+        //If offline, increment all values between hour and time stamp
+        for (var i = hour; i <= curStamp.hour(); i++) {
+          console.log("Adding 1 to " + i);
           barArray[i]++;
         }
-      }
-      hour = 0;
-      curDay = curStamp.date();
-    }
-
-    //If online, set hour
-    if (onlineSwitch == true) {
-      hour = curStamp.hour();
-    } else if (prevSwitch == true) {
-      //If offline, increment all values between hour and time stamp
-      for (var i = hour; i <= curStamp.hour(); i++) {
-        console.log("Adding 1 to " + i);
-        barArray[i]++;
       }
     }
   });
