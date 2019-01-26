@@ -91,22 +91,31 @@ client.on("message", msg => {
       msg.channel.send(
         "Invalid day specified. Please enter a valid day e.g. `Sunday, Monday`"
       );
+      return;
     }
     createGraph(msg, username, day);
+  }
 
-    if (command[0] === "!active") {
-      if (command.length < 2) {
+  if (command[0] === "!active") {
+    if (command.length < 2) {
+      msg.channel.send(
+        "Please specify a user and day. Example: `!active foobar#1234 Sunday, ect...`"
+      );
+      return;
+    }
+    if (command.length == 2) {
+      getBestTimeAndDay(msg, command[1]);
+    }
+    if (command.length == 3) {
+      var day = getDayNumber(command[2]);
+      if (day === false) {
         msg.channel.send(
-          "Please specify a user and day. Example: `!active foobar#1234 Sunday, Monday, ect...`"
+          "Invalid day specified. Please enter a valid day e.g. `Sunday, Monday`"
         );
         return;
       }
-      if (command.length == 2) {
-        getBestTimeAndDay(msg, command[1]);
-      }
-      if (command.length == 3) {
-        //getBestTime(msg, command[1], command[2]);
-      }
+
+      getBestTime(msg, command[1], day);
     }
   }
 });
@@ -177,12 +186,13 @@ function getBestTimeAndDay(msg, username) {
 
       var mostActiveTime = 0;
       var activeLevel = 0;
-      var mostActiveDay = "no time!";
+      var mostActiveDay = "not available";
       for (var day = 0; day < 7; day++) {
         var barArray = getActiveTimes(rows, day);
         barArray.forEach((element, index) => {
           if (element > activeLevel) {
             mostActiveTime = index;
+            activeLevel = element;
             mostActiveDay = getDayName(day);
           }
         });
@@ -190,7 +200,43 @@ function getBestTimeAndDay(msg, username) {
 
       // Export graph data to a file
       msg.channel.send(
-        "Most active time for ${username} is ${mostActiveTime} on ${mostActiveDay}s."
+        `Most active time for ${username} is ${mostActiveTime}:00 on ${mostActiveDay}s.`
+      );
+    })
+    .catch(error => {
+      msg.channel.send(
+        `An error occurred while fetching activity for ${username}.`
+      );
+      console.log(error);
+    });
+}
+
+function getBestTime(msg, username, day) {
+  //
+  db.select()
+    .table("user_activity")
+    .where({ username: username })
+    .then(rows => {
+      if (!(rows.length > 0)) {
+        msg.channel.send(`No such user online on that day: ${username}`);
+        return;
+      }
+
+      var mostActiveTime = 0;
+      var activeLevel = 0;
+      var barArray = getActiveTimes(rows, day);
+      barArray.forEach((element, index) => {
+        if (element > activeLevel) {
+          mostActiveTime = index;
+          activeLevel = element;
+        }
+      });
+
+      // Export graph data to a file
+      msg.channel.send(
+        `Most active time for ${username} on ${getDayName(
+          day
+        )}s is ${mostActiveTime}.`
       );
     })
     .catch(error => {
