@@ -5,8 +5,5 @@
     "highcharts": "^7.0.2",
     "highcharts-export-server": "^2.0.16",
     "moment": "^2.24.0"
-  },
-  "scripts": {
-    "preinstall": "export ACCEPT_HIGHCHARTS_LICENSE=1"
   }
 }

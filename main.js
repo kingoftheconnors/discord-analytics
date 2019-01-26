@@ -47,3 +47,23 @@ function formatTimes() {
   
   return retVal
 }
+
+function createGraph() {
+  var hour = 0;
+  var onlineSwitch = true;
+
+  var barArray = new Array(24).fill(0);
+
+  //For all timeStamps for username on weekday...
+    //If online, set hour
+
+    //If offline, increment all values between hour and time stamp
+    for(var i=hour; i < ; i++) {
+    }
+
+    //If day ends and user is online, go from hour to 23 and increment
+
+
+  //Create graph
+  
+}
