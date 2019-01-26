@@ -1,6 +1,7 @@
 require('dotenv').config()
 
-const db = require('config/db')
+//const db = require('./config/db')
+const exportGraph = require('./lib/chart')
 const Discord = require('discord.js')
 const moment = require('moment')
 const client = new Discord.Client()
@@ -25,14 +26,20 @@ client.on('presenceUpdate', msg => {
   userTimes[msg.user.username].push(importantStuff)
 });
 
-var chartAttachment = new Discord.Attachment('anychart.jpg')
 
 client.on('message', msg => {
   if (msg.content === 'stats') {
     console.log(userTimes)
     msg.channel.send(formatTimes())
-    msg.channel.send("Here is an image:", chartAttachment)
   }
+  if (msg.content === 'chart') {
+    exportGraph([1, 6, 2, 3, 8, 20, 12, 9, 1, 2]);
+    setImmediate(()=>{
+      var chartAttachment = new Discord.Attachment('out.png')
+      msg.channel.send("Here is an image:", chartAttachment)
+    })
+  }
+
 })
 
 client.login(process.env.BOT_TOKEN)
@@ -47,7 +54,7 @@ function formatTimes() {
   
   return retVal
 }
-
+/*
 function createGraph() {
   var hour = 0;
   var onlineSwitch = true;
@@ -67,3 +74,4 @@ function createGraph() {
   //Create graph
   
 }
+*/

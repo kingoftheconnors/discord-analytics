@@ -12,7 +12,6 @@
     "prettier": "^1.16.1"
   },
   "scripts": {
-    "preinstall": "export ACCEPT_HIGHCHARTS_LICENSE=1",
     "lint": "prettier --write **/*.js"
   }
 }
