@@ -1,7 +1,3 @@
-#!/usr/bin/env bash
-
-# Stop running if any part of this script fails
-set -e
 
 # Install NPM packages
 npm install
@@ -10,4 +6,4 @@ npm install
 psql -c 'create database discordanalytics_dev;'
 
 # Migrate databases
-./node_modules/.bin/knex migrate:latest
+node ./node_modules/.bin/knex migrate:latest
