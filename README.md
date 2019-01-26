@@ -18,5 +18,5 @@ bin/setup
 .\bin\setup.cmd
 
 # Run main program
-node main.js
+node app.js
 ```

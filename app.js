@@ -81,10 +81,27 @@ client.on("message", msg => {
     }
 
     var username = command[1];
-    var day = command[2];
+    var dayName = command[2].toLowerCase();
+    if (!dayMap.hasOwnProperty(dayName)) {
+      msg.channel.send(
+        "Invalid day specified. Please enter a valid day e.g. `Sunday, Monday`"
+      );
+      return;
+    }
+    var day = dayMap[dayName];
     createGraph(msg, username, day);
   }
 });
+
+var dayMap = {
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6
+};
 
 client.login(process.env.BOT_TOKEN);
 
@@ -92,16 +109,18 @@ function createGraph(msg, username, day) {
   var hour = 0;
   var prevSwitch = false;
   var onlineSwitch = false;
-  //var curDay = 0
+  var curDay = 0;
 
   var barArray = new Array(24).fill(0);
 
+  //
   db.select()
     .table("user_activity")
     .where({ username: username })
+    .whereRaw("extract(dow from timestamp) = ?", day)
     .then(rows => {
       if (!(rows.length > 0)) {
-        msg.channel.send(`No such user: ${username}`);
+        msg.channel.send(`No such user online on that day: ${username}`);
         return;
       }
 
@@ -114,16 +133,16 @@ function createGraph(msg, username, day) {
         var curStamp = moment(event.timestamp);
 
         //Check if this stamp's day is a week later than the current one
-        /*if(curStamp.date() != day) {
-        //If day ends and user is online, go from hour to 23 and increment
-        if(onlineSwitch == true) {
-          for(var i=hour; i < 24; i++) {
-            barArray[i]++
+        if (curStamp.date() != curDay) {
+          //If day ends and user is online, go from hour to 23 and increment
+          if (prevSwitch == true) {
+            for (var i = hour; i < 24; i++) {
+              barArray[i]++;
+            }
           }
+          hour = 0;
+          curDay = curStamp.date();
         }
-        hour = 0;
-        //curDay = curStamp.date()
-      }*/
 
         //If online, set hour
         if (onlineSwitch == true) {
