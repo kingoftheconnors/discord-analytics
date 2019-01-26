@@ -141,9 +141,21 @@ function createGraph(msg, username, day) {
       if (onlineSwitch == true) {
         for (var i = hour; i < 24; i++) {
           barArray[i]++;
-          console.log("Adding 1 to " + i);
         }
       }
+
+      // Export graph data to a file
+      console.log(barArray);
+      exportGraph(barArray, username).then(
+        exportedChartFileName => {
+          var chartAttachment = new Discord.Attachment(exportedChartFileName);
+          msg.channel.send("Here's " + username + "'s chart:", chartAttachment);
+        },
+        err => {
+          msg.channel.send("An error occurred while generating this chart.");
+          console.log(err);
+        }
+      );
     })
     .catch(error => {
       msg.channel.send(
@@ -151,12 +163,4 @@ function createGraph(msg, username, day) {
       );
       console.log(error);
     });
-
-  // Export graph data to a file
-  console.log(barArray);
-  var exportedChartFileName = exportGraph(barArray, username);
-  setImmediate(() => {
-    var chartAttachment = new Discord.Attachment(exportedChartFileName);
-    msg.channel.send("Here's " + username + "'s chart:", chartAttachment);
-  });
 }
