@@ -25,11 +25,13 @@ client.on('presenceUpdate', msg => {
   userTimes[msg.user.username].push(importantStuff)
 });
 
+var chartAttachment = new Discord.Attachment('anychart.jpg')
+
 client.on('message', msg => {
   if (msg.content === 'stats') {
     console.log(userTimes)
-    // msg.reply(formatTimes(), {reply: null})
     msg.channel.send(formatTimes())
+    msg.channel.send("Here is an image:", chartAttachment)
   }
 })
 
