@@ -1,10 +1,5 @@
-var db = require("knex")({
-  client: "pg",
-  connection: process.env.DATABASE_URL,
-  searchPath: ["public"],
-  migrations: {
-    tableName: "migrations"
-  }
-});
+var env = process.env.NODE_ENV || "development";
+var config = require("../knexfile")[env]
+var db = require("knex")(config);
 
 module.exports = db;

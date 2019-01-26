@@ -13,17 +13,24 @@ client.on('ready', () => {
 
 client.on('presenceUpdate', msg => {
   console.log(`${msg.user.username}#${msg.user.discriminator}: ${msg.user.presence.status}`)
+
   if (!userTimes[msg.user.username]) {
     userTimes[msg.user.username] = []
   }
+
+  userTimes[msg.user.username].push(importantStuff)
 
   var importantStuff = {
     username: `${msg.user.username}#${msg.user.discriminator}`,
     status: msg.user.presence.status,
     timestamp: moment()
   }
-
-  userTimes[msg.user.username].push(importantStuff)
+  
+  //Push to database
+    console.log("Adding to database")
+    db('user_activity').insert(importantStuff).then( (result) => {
+      console.log(result)
+    })
 });
 
 
