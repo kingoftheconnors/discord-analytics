@@ -46,6 +46,10 @@ client.on("message", msg => {
   var command = msg.content.split(" ");
 
   if (command[0] === "!available") {
+    // if (!msg.mentions) {
+    //   error Please specify a username
+    // }
+    // msg.mentions.users.first.id <-- "user"
     if (command.length < 2) {
       msg.channel.send(
         "Please specify a username. Example: `!available foobar#1234 26`"
@@ -60,7 +64,7 @@ client.on("message", msg => {
       return;
     }
 
-    var username = command[1];
+    var username = msg.mentions.users.first.id;
     var day = getDayNumber(command[2]);
     if (day === false) {
       msg.channel.send(
@@ -115,6 +119,35 @@ client.on("message", msg => {
       }
 
       getBestTime(msg, command[1], day);
+    }
+  }
+
+  if (command[0] === "!attachments") {
+    if (command.length == 1) {
+      ChatEvent.attachmentCount().then(
+        result => {
+          msg.channel.send(`Lifetime attachment count: ${result.sum}`);
+        },
+        err => {
+          console.log(err);
+          msg.channel.send("An error occurred while counting the attachments.");
+        }
+      );
+    } else if (command.length == 2) {
+      ChatEvent.userAttachmentCount(command[1]).then(
+        result => {
+          msg.channel.send(`User attachment count: ${result.sum}`);
+        },
+        err => {
+          console.log(err);
+          msg.channel.send("An error occured while counting the attachments.");
+        }
+      );
+    } else {
+      msg.channel.send(
+        "Too many arguments. Please specify either user or no arguments. Example: `!active foobar#1234`"
+      );
+      return;
     }
   }
 });
@@ -212,10 +245,10 @@ function createWeeklyChatGraph(msg, username) {
       }
 
       var barArray = new Array(7).fill(0);
-      rows.forEach( chat_event => {
-        chat_event.timestamp = moment(chat_event.timestamp)
-        barArray[chat_event.timestamp.day()]++
-      })
+      rows.forEach(chat_event => {
+        chat_event.timestamp = moment(chat_event.timestamp);
+        barArray[chat_event.timestamp.day()]++;
+      });
 
       // Export graph data to a file
       console.log(barArray);
@@ -374,7 +407,6 @@ function getActiveTimes(rows, day) {
 
   return barArray;
 }
-
 
 function getChatTimes(rows, day) {
   var barArray = new Array(24).fill(0);

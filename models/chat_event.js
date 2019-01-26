@@ -7,6 +7,21 @@ class ChatEvent {
     this.data = data;
   }
 
+  static attachmentCount() {
+    return db
+      .table(USER_CHAT)
+      .sum("attachments")
+      .first();
+  }
+
+  static userAttachmentCount(username) {
+    return db
+      .table(USER_CHAT)
+      .sum("attachments")
+      .where({ username: username })
+      .first();
+  }
+
   static byDay(username, day) {
     return db
       .select()
