@@ -212,12 +212,10 @@ function createWeeklyChatGraph(msg, username) {
       }
 
       var barArray = new Array(7).fill(0);
-      for (var day = 0; day < 6; day++) {
-        var chatArray = getChatTimes(rows, day);
-        barArray[day] = chatArray.reduce((a, b) => {
-          return a + b;
-        });
-      }
+      rows.forEach( chat_event => {
+        chat_event.timestamp = moment(chat_event.timestamp)
+        barArray[chat_event.timestamp.day()]++
+      })
 
       // Export graph data to a file
       console.log(barArray);
@@ -376,6 +374,7 @@ function getActiveTimes(rows, day) {
 
   return barArray;
 }
+
 
 function getChatTimes(rows, day) {
   var barArray = new Array(24).fill(0);
