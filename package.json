@@ -12,6 +12,6 @@
     "prettier": "^1.16.1"
   },
   "scripts": {
-    "lint": "prettier --write **/*.js"
+    "lint": "prettier --write *.js **/*.js"
   }
 }
