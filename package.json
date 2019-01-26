@@ -4,6 +4,15 @@
     "dotenv": "^6.2.0",
     "highcharts": "^7.0.2",
     "highcharts-export-server": "^2.0.16",
-    "moment": "^2.24.0"
+    "knex": "^0.16.3",
+    "moment": "^2.24.0",
+    "pg": "^7.8.0"
+  },
+  "devDependencies": {
+    "prettier": "^1.16.1"
+  },
+  "scripts": {
+    "preinstall": "export ACCEPT_HIGHCHARTS_LICENSE=1",
+    "lint": "prettier --write **/*.js"
   }
 }

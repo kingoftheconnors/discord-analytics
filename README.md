@@ -1,6 +1,11 @@
 # discord-analytics
 
-Getting started
+## Requirements
+
+ - Node.js
+ - PostgreSQL
+
+## Getting started
 
 ```bash
 # Copy config, edit where appropriate
