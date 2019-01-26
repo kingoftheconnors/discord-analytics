@@ -28,15 +28,25 @@ client.on('presenceUpdate', msg => {
 
 
 client.on('message', msg => {
-  if (msg.content === 'stats') {
+  var arguments = msg.content.split(" ")
+  if (arguments[0] === '!stats') {
     console.log(userTimes)
     msg.channel.send(formatTimes())
   }
-  if (msg.content === 'chart') {
+  if (arguments[0] === '!chart') {
     exportGraph([1, 6, 2, 3, 8, 20, 12, 9, 1, 2]);
     setImmediate(()=>{
       var chartAttachment = new Discord.Attachment('out.png')
       msg.channel.send("Here is an image:", chartAttachment)
+    })
+  }
+  if (arguments[0] === '!available') {
+    //var barArray = createGraph()
+    //exportGraph(barArray);
+    exportGraph([1, 6, 2, 3, 8, 20, 12, 9, 1, 2]);
+    setImmediate(()=>{
+      var chartAttachment = new Discord.Attachment('out.png')
+      msg.channel.send("Here's " + arguments[1] + "'s chart:", chartAttachment)
     })
   }
 
@@ -79,11 +89,6 @@ function createGraph() {
     }
   }
 
-  //Create graph
-  exportGraph(barArray);
-  setImmediate(()=>{
-    var chartAttachment = new Discord.Attachment('out.png')
-    msg.channel.send("Here is an image:", chartAttachment)
-  
+  return barArray
 }
 */
