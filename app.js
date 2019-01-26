@@ -1,4 +1,6 @@
 require('dotenv').config()
+
+const db = require('config/db')
 const Discord = require('discord.js')
 const moment = require('moment')
 const client = new Discord.Client()
