@@ -3,7 +3,7 @@ var db = require("knex")({
   connection: process.env.DATABASE_URL,
   searchPath: ["public"],
   migrations: {
-      tableName: "migrations"
+    tableName: "migrations"
   }
 });
 

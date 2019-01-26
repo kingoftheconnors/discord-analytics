@@ -11,6 +11,9 @@
 # Copy config, edit where appropriate
 cp .env.example .env
 
+# Migrate database
+bin/knex migrate:latest
+
 # Run main program
 node main.js
 ```

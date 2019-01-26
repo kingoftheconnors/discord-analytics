@@ -41,7 +41,7 @@ client.on('message', msg => {
     })
   }
   if (arguments[0] === '!available') {
-    //var barArray = createGraph()
+    //var barArray = createGraph(arguments[1], arguments[2])
     //exportGraph(barArray);
     exportGraph([1, 6, 2, 3, 8, 20, 12, 9, 1, 2]);
     setImmediate(()=>{
@@ -65,22 +65,27 @@ function formatTimes() {
   return retVal
 }
 /*
-function createGraph() {
+function createGraph(username, timeStamp) {
   var hour = 0;
   var onlineSwitch = true;
 
   var barArray = new Array(24).fill(0);
 
-  //For all timeStamps for username on weekday...
+  //For all records for username on weekday...
 
   {
+    onlineSwitch = 
+    var curStamp = 
     //If online, set hour
-
-    //If offline, increment all values between hour and time stamp
-    for(var i=hour; i < ; i++) {
-      barArray[i]++
+    if(onlineSwitch == true) {
+      hour = curStamp.hour()
     }
-
+    else {
+      //If offline, increment all values between hour and time stamp
+      for(var i=hour; i < curStamp.hour(); i++) {
+        barArray[i]++
+      }
+    }
   }
   //If day ends and user is online, go from hour to 23 and increment
   if(onlineSwitch == true) {
