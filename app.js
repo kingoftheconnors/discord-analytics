@@ -4,7 +4,7 @@ const db = require("./config/db");
 const { exportGraph, exportWeeklyGraph } = require("./lib/chart");
 const { exportChat, exportWeeklyChat } = require("./lib/chatChart");
 const { getDayNumber, getDayName } = require("./lib/time");
-const ChatEvent = require("./models/chat_event");
+const { ChatEvent, PresenceEvent } = require("./models");
 const Discord = require("discord.js");
 const moment = require("moment");
 const exporter = require("highcharts-export-server");
@@ -18,26 +18,20 @@ client.on("ready", () => {
 });
 
 client.on("presenceUpdate", msg => {
-  var activityRecord = {
+  var presenceEvent = new PresenceEvent({
+    user_id: msg.user.id,
     username: msg.user.tag,
     status: msg.user.presence.status
-  };
-
-  // Save to database
-  db("user_activity")
-    .insert(activityRecord)
-    .then(_result => {
-      console.log("Saved activity: ", activityRecord);
-    })
-    .catch(error => {
-      console.log("Failed to save activity: ", activityRecord, error);
-    });
+  });
+  presenceEvent.save();
 });
 
+// TODO(tom): Save user ids
 // hello <@121393624909873152>
 client.on("message", msg => {
   // Persist the text chat event (no message contents)
   var chatEvent = new ChatEvent({
+    user_id: msg.author.id,
     username: msg.author.tag,
     length: msg.content.length,
     attachments: msg.attachments.size,
@@ -245,11 +239,13 @@ function createWeeklyChatGraph(msg, username) {
         msg.channel.send(`User hasn't posted any messages: ${username}`);
         return;
       }
-
-      var barArray = new Array(7).fill(0);
+      var barArray = new Array(24);
+      for (var i = 0; i < barArray.length; i++) {
+        barArray[i] = new Array(7).fill(0);
+      }
       rows.forEach(chat_event => {
         chat_event.timestamp = moment(chat_event.timestamp);
-        barArray[chat_event.timestamp.day()]++;
+        barArray[chat_event.timestamp.hour()][chat_event.timestamp.day()]++;
       });
 
       // Export graph data to a file
