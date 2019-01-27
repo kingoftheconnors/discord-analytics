@@ -5,6 +5,7 @@ const { exportGraph, exportWeeklyGraph } = require("./lib/chart");
 const { exportChat, exportWeeklyChat } = require("./lib/chatChart");
 const { getDayNumber, getDayName } = require("./lib/time");
 const { ChatEvent, PresenceEvent } = require("./models");
+const parseMention = require("./lib/user_id");
 const Discord = require("discord.js");
 const moment = require("moment");
 const exporter = require("highcharts-export-server");
@@ -42,25 +43,30 @@ client.on("message", msg => {
   var command = msg.content.split(" ");
 
   if (command[0] === "!available") {
-    // if (!msg.mentions) {
-    //   error Please specify a username
-    // }
-    // msg.mentions.users.first.id <-- "user"
     if (command.length < 2) {
       msg.channel.send(
-        "Please specify a username. Example: `!available foobar#1234 26`"
+        "Please mention a username. Example: `!available @foobar#1234 Monday`"
       );
       return;
     }
+
+    var userId = parseMention(command[1]);
+    if (!userId) {
+      msg.channel.send(
+        "Please mention a valid username. Example: `!available @foobar#1234 Monday`"
+      );
+      return;
+    }
+
+    var user = msg.mentions.users.get(userId);
 
     if (command.length < 3) {
       msg.channel.send(
-        "Please specify a day. Example: `!available foobar#1234 26`"
+        "Please specify a day. Example: `!available @foobar#1234 Monday`"
       );
       return;
     }
 
-    var username = msg.mentions.users.first.id;
     var day = getDayNumber(command[2]);
     if (day === false) {
       msg.channel.send(
@@ -68,7 +74,7 @@ client.on("message", msg => {
       );
       return;
     }
-    createGraph(msg, username, day);
+    createGraph(msg, user, day);
   }
 
   if (command[0] === "!chat") {
@@ -78,9 +84,20 @@ client.on("message", msg => {
       );
       return;
     }
+
+    var userId = parseMention(command[1]);
+    if (!userId) {
+      msg.channel.send(
+        "Please mention a valid username. Example: `!available @foobar#1234 Monday`"
+      );
+      return;
+    }
+
+    var user = msg.mentions.users.get(userId);
+
     if (command.length == 2) {
       //Weekly
-      createWeeklyChatGraph(msg, command[1]);
+      createWeeklyChatGraph(msg, user);
     }
     if (command.length == 3) {
       //Daily
@@ -91,7 +108,7 @@ client.on("message", msg => {
         );
         return;
       }
-      createChatGraph(msg, command[1], day);
+      createChatGraph(msg, user, day);
     }
   }
 
@@ -166,46 +183,44 @@ process.on("SIGINT", _evt => {
 
 client.login(process.env.BOT_TOKEN);
 
-function createGraph(msg, username, day) {
+function createGraph(msg, user, day) {
   //
-  db.select()
-    .table("user_activity")
-    .where({ username: username })
-    .whereRaw("extract(dow from timestamp) = ?", day)
-    .then(rows => {
-      if (!(rows.length > 0)) {
-        msg.channel.send(`No such user online on that day: ${username}`);
-        return;
+  var rows = PresenceEvent.byDay(user.id, day);
+  rows.then(rows => {
+    if (!(rows.length > 0)) {
+      msg.channel.send(`No such user online on that day: ${user.tag}`);
+      return;
+    }
+
+    var barArray = getActiveTimes(rows, day);
+
+    // Export graph data to a file
+    console.log(barArray);
+    exportGraph(barArray, user.tag).then(
+      exportedChartFileName => {
+        var chartAttachment = new Discord.Attachment(exportedChartFileName);
+        msg.channel.send("Here's " + user.tag + "'s chart:", chartAttachment);
+      },
+      err => {
+        msg.channel.send("An error occurred while generating this chart.");
+        console.log(err);
       }
+    );
+  });
 
-      var barArray = getActiveTimes(rows, day);
-
-      // Export graph data to a file
-      console.log(barArray);
-      exportGraph(barArray, username).then(
-        exportedChartFileName => {
-          var chartAttachment = new Discord.Attachment(exportedChartFileName);
-          msg.channel.send("Here's " + username + "'s chart:", chartAttachment);
-        },
-        err => {
-          msg.channel.send("An error occurred while generating this chart.");
-          console.log(err);
-        }
-      );
-    })
-    .catch(error => {
-      msg.channel.send(
-        `An error occurred while fetching activity for ${username}.`
-      );
-      console.log(error);
-    });
+  // .catch(error => {
+  //   msg.channel.send(
+  //     `An error occurred while fetching activity for ${user.tag}.`
+  //   );
+  //   console.log(error);
+  // });
 }
 
-function createChatGraph(msg, username, day) {
-  ChatEvent.byDay(username, day)
+function createChatGraph(msg, user, day) {
+  ChatEvent.byDay(user.id, day)
     .then(rows => {
       if (!(rows.length > 0)) {
-        msg.channel.send(`No such user online on that day: ${username}`);
+        msg.channel.send(`No such user online on that day: ${user.tag}`);
         return;
       }
 
@@ -213,10 +228,10 @@ function createChatGraph(msg, username, day) {
 
       // Export graph data to a file
       console.log(barArray);
-      exportChat(barArray, username).then(
+      exportChat(barArray, user.tag).then(
         exportedChartFileName => {
           var chartAttachment = new Discord.Attachment(exportedChartFileName);
-          msg.channel.send("Here's " + username + "'s chart:", chartAttachment);
+          msg.channel.send("Here's " + user.tag + "'s chart:", chartAttachment);
         },
         err => {
           msg.channel.send("An error occurred while generating this chart.");
@@ -226,17 +241,17 @@ function createChatGraph(msg, username, day) {
     })
     .catch(error => {
       msg.channel.send(
-        `An error occurred while fetching activity for ${username}.`
+        `An error occurred while fetching activity for ${user.tag}.`
       );
       console.log(error);
     });
 }
 
-function createWeeklyChatGraph(msg, username) {
-  ChatEvent.byWeek(username)
+function createWeeklyChatGraph(msg, user) {
+  ChatEvent.byWeek(user.id)
     .then(rows => {
       if (!(rows.length > 0)) {
-        msg.channel.send(`User hasn't posted any messages: ${username}`);
+        msg.channel.send(`User hasn't posted any messages: ${user.tag}`);
         return;
       }
       var barArray = new Array(7).fill(0);
@@ -247,10 +262,10 @@ function createWeeklyChatGraph(msg, username) {
 
       // Export graph data to a file
       console.log(barArray);
-      exportWeeklyChat(barArray, username).then(
+      exportWeeklyChat(barArray, user.tag).then(
         exportedChartFileName => {
           var chartAttachment = new Discord.Attachment(exportedChartFileName);
-          msg.channel.send("Here's " + username + "'s chart:", chartAttachment);
+          msg.channel.send("Here's " + user.tag + "'s chart:", chartAttachment);
         },
         err => {
           msg.channel.send("An error occurred while generating this chart.");
@@ -260,23 +275,23 @@ function createWeeklyChatGraph(msg, username) {
     })
     .catch(error => {
       msg.channel.send(
-        `An error occurred while fetching activity for ${username}.`
+        `An error occurred while fetching activity for ${user.tag}.`
       );
       console.log(error);
     });
 }
 
-function getBestTimeAndDay(msg, username) {
+function getBestTimeAndDay(msg, user) {
   var mostActiveTime = 0;
   var activeLevel = 0;
   var mostActiveDay = "not available";
 
   db.select()
     .table("user_activity")
-    .where({ username: username })
+    .where({ user_id: user.id })
     .then(rows => {
       if (!(rows.length > 0)) {
-        msg.channel.send(`No such user online on that day: ${username}`);
+        msg.channel.send(`No such user online on that day: ${user.tag}`);
         return;
       }
       for (var day = 0; day < 7; day++) {
@@ -292,26 +307,25 @@ function getBestTimeAndDay(msg, username) {
 
       // Export graph data to a file
       msg.channel.send(
-        `Most active time for ${username} is after ${mostActiveTime}:00 on ${mostActiveDay}s.`
+        `Most active time for ${
+          user.tag
+        } is after ${mostActiveTime}:00 on ${mostActiveDay}s.`
       );
     })
     .catch(error => {
       msg.channel.send(
-        `An error occurred while fetching activity for ${username}.`
+        `An error occurred while fetching activity for ${user.tag}.`
       );
       console.log(error);
     });
 }
 
-function getBestTime(msg, username, day) {
+function getBestTime(msg, user, day) {
   //
-  db.select()
-    .table("user_activity")
-    .where({ username: username })
-    .whereRaw("extract(dow from timestamp) = ?", day)
+  PresenceEvent.byDay(user.id, day)
     .then(rows => {
       if (!(rows.length > 0)) {
-        msg.channel.send(`No such user online on that day: ${username}`);
+        msg.channel.send(`No such user online on that day: ${user.tag}`);
         return;
       }
 
@@ -327,14 +341,14 @@ function getBestTime(msg, username, day) {
 
       // Export graph data to a file
       msg.channel.send(
-        `Most active time for ${username} on ${getDayName(
+        `Most active time for ${user.tag} on ${getDayName(
           day
         )}s is after ${mostActiveTime}.`
       );
     })
     .catch(error => {
       msg.channel.send(
-        `An error occurred while fetching activity for ${username}.`
+        `An error occurred while fetching activity for ${user.tag}.`
       );
       console.log(error);
     });

@@ -22,19 +22,19 @@ class ChatEvent {
       .first();
   }
 
-  static byDay(username, day) {
+  static byDay(user_id, day) {
     return db
       .select()
       .table(USER_CHAT)
-      .where({ username: username })
+      .where({ user_id: user_id })
       .whereRaw("extract(dow from timestamp) = ?", day);
   }
 
-  static byWeek(username) {
+  static byWeek(user_id) {
     return db
       .select()
       .table(USER_CHAT)
-      .where({ username: username });
+      .where({ user_id: user_id });
   }
 
   save() {

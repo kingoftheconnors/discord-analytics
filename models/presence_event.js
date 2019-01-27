@@ -7,6 +7,14 @@ class PresenceEvent {
     this.data = data;
   }
 
+  static byDay(user_id, day) {
+    return db
+      .select()
+      .table("user_activity")
+      .where({ user_id: user_id })
+      .whereRaw("extract(dow from timestamp) = ?", day);
+  }
+
   save() {
     // Save to database
     db(USER_ACTIVITY)
