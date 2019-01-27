@@ -10,9 +10,12 @@
     "shortid": "^2.2.14"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
     "prettier": "^1.16.1"
   },
   "scripts": {
-    "lint": "prettier --write *.js **/*.js"
+    "lint": "prettier --write *.js **/*.js",
+    "test": "mocha"
   }
 }

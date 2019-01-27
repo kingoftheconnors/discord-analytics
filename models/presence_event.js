@@ -20,4 +20,4 @@ class PresenceEvent {
   }
 }
 
-module.exports = PresenceEvent
+module.exports = PresenceEvent;

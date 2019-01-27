@@ -239,13 +239,10 @@ function createWeeklyChatGraph(msg, username) {
         msg.channel.send(`User hasn't posted any messages: ${username}`);
         return;
       }
-      var barArray = new Array(24);
-      for (var i = 0; i < barArray.length; i++) {
-        barArray[i] = new Array(7).fill(0);
-      }
+      var barArray = new Array(7).fill(0);
       rows.forEach(chat_event => {
         chat_event.timestamp = moment(chat_event.timestamp);
-        barArray[chat_event.timestamp.hour()][chat_event.timestamp.day()]++;
+        barArray[chat_event.timestamp.day()]++;
       });
 
       // Export graph data to a file
