@@ -1,5 +1,5 @@
 const expect = require("chai").expect;
-const parseMention = require("../lib/user_id");
+const parseMention = require("../lib/parseMention");
 
 describe("parseMention", function() {
   it("does not match invalid things", function() {
