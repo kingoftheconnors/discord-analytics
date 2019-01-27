@@ -80,7 +80,7 @@ client.on("message", msg => {
   if (command[0] === "!chat") {
     if (command.length < 2) {
       msg.channel.send(
-        "Please specify a user and day. Example: `!active foobar#1234 Sunday`"
+        "Please specify a user and day. Example: `!active @foobar#1234 Sunday`"
       );
       return;
     }
@@ -115,7 +115,7 @@ client.on("message", msg => {
   if (command[0] === "!active") {
     if (command.length < 2) {
       msg.channel.send(
-        "Please specify a user and day. Example: `!active foobar#1234 Sunday, ect...`"
+        "Please specify a user and day. Example: `!active @foobar#1234 Sunday, ect...`"
       );
       return;
     }
@@ -180,7 +180,7 @@ client.on("message", msg => {
       );
     } else {
       msg.channel.send(
-        "Too many arguments. Please specify either user or no arguments. Example: `!active foobar#1234`"
+        "Too many arguments. Please specify either user or no arguments. Example: `!active @foobar#1234`"
       );
       return;
     }
@@ -210,7 +210,8 @@ function createGraph(msg, user, day) {
   var rows = PresenceEvent.byDay(user.id, day);
   rows.then(rows => {
     if (!(rows.length > 0)) {
-      msg.channel.send(`No such user online on that day: ${user.tag}`);
+      dayName = getDayName(day);
+      msg.channel.send(`${user.tag} is not online on ${dayName}s`);
       return;
     }
 
@@ -243,7 +244,7 @@ function createChatGraph(msg, user, day) {
     .then(rows => {
       if (!(rows.length > 0)) {
         dayName = getDayName(day);
-        msg.channel.send(`${user.tag} was not online on ${dayName}.`);
+        msg.channel.send(`${user.tag} is not online on ${dayName}s.`);
         return;
       }
 
