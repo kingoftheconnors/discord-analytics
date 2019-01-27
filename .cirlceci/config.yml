@@ -1,0 +1,19 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - restore_cache:
+          key: npm-cache-v1-{{ checksum "package.json" }}
+      - run:
+          name: Install NPM dependencies
+          command: npm install
+      - save_cache:
+          key: npm-cache-v1-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run:
+          name: Run unit tests
+          command: npm test
