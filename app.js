@@ -5,6 +5,7 @@ const exportGraph = require("./lib/chart");
 const { exportChat, exportWeeklyChat } = require("./lib/chatChart");
 const { getDayNumber, getDayName } = require("./lib/time");
 const { ChatEvent, PresenceEvent } = require("./models");
+const getActiveTimes = require("./lib/getActiveTimes")
 const parseMention = require("./lib/user_id");
 const Discord = require("discord.js");
 const moment = require("moment");
@@ -209,43 +210,43 @@ client.login(process.env.BOT_TOKEN);
 function createGraph(msg, user, day) {
   //
   var rows = PresenceEvent.byDay(user.id, day);
-  rows.then(rows => {
-    if (!(rows.length > 0)) {
-      dayName = getDayName(day);
-      msg.channel.send(`${user.tag} is not online on ${dayName}s`);
-      return;
-    }
-
-    var barArray = getActiveTimes(rows, day);
-
-    // Export graph data to a file
-    console.log(barArray);
-    exportGraph(barArray, user.tag).then(
-      exportedChartFileName => {
-        var chartAttachment = new Discord.Attachment(exportedChartFileName);
-        msg.channel
-          .send("Here's " + user.tag + "'s chart:", chartAttachment)
-          .then(_msg => {
-            fs.unlinkSync(exportedChartFileName);
-          })
-          .catch(err => {
-            console.log(err);
-            fs.unlinkSync(exportedChartFileName);
-          });
-      },
-      err => {
-        msg.channel.send("An error occurred while generating this chart.");
-        console.log(err);
+  rows
+    .then(rows => {
+      if (!(rows.length > 0)) {
+        dayName = getDayName(day);
+        msg.channel.send(`${user.tag} is not online on ${dayName}s`);
+        return;
       }
-    );
-  });
 
-  // .catch(error => {
-  //   msg.channel.send(
-  //     `An error occurred while fetching activity for ${user.tag}.`
-  //   );
-  //   console.log(error);
-  // });
+      var barArray = getActiveTimes(rows, day);
+
+      // Export graph data to a file
+      console.log(barArray);
+      exportGraph(barArray, user.tag).then(
+        exportedChartFileName => {
+          var chartAttachment = new Discord.Attachment(exportedChartFileName);
+          msg.channel
+            .send("Here's " + user.tag + "'s chart:", chartAttachment)
+            .then(_msg => {
+              fs.unlinkSync(exportedChartFileName);
+            })
+            .catch(err => {
+              console.log(err);
+              fs.unlinkSync(exportedChartFileName);
+            });
+        },
+        err => {
+          msg.channel.send("An error occurred while generating this chart.");
+          console.log(err);
+        }
+      );
+    })
+    .catch(error => {
+      msg.channel.send(
+        `An error occurred while fetching activity for ${user.tag}.`
+      );
+      console.log(error);
+    });
 }
 
 function createChatGraph(msg, user, day) {
@@ -404,67 +405,7 @@ function getBestTime(msg, user, day) {
     });
 }
 
-function getActiveTimes(rows, day) {
-  var hour = 0;
-  var minute = 0;
-  var prevSwitch = false;
-  var onlineSwitch = false;
-  var curDay = 0;
 
-  var barArray = new Array(24).fill(0);
-
-  //For all records for username on weekday...
-  rows.forEach(event => {
-    if (moment(event.timestamp).day() == day) {
-      //Boolean variable that is true when online and false when offline
-      prevSwitch = onlineSwitch;
-      onlineSwitch = event.status === "online";
-      //Moment.js object
-      event.timestamp = moment(event.timestamp);
-
-      //Check if this stamp's day is a week later than the current one
-      if (event.timestamp.date() != curDay) {
-        //If day ends and user is online, go from hour to 23 and increment
-        if (prevSwitch == true) {
-          for (var i = hour; i < 24; i++) {
-            barArray[i]++;
-          }
-        }
-        hour = 0;
-        minute = 0;
-        curDay = event.timestamp.date();
-      }
-
-      //If online, set hour
-      if (onlineSwitch == true) {
-        hour = event.timestamp.hour();
-        minute = event.timestamp.minute();
-      } else if (prevSwitch == true) {
-        //If offline, increment all values between hour and time stamp
-        for (var i = hour; i <= event.timestamp.hour(); i++) {
-          //If there is little distance between signing on and off, don't count 5-minute visits
-          if (
-            hour == event.timestamp.hour() &&
-            event.timestamp.minute() - minute < 10
-          ) {
-            //Do nothing
-          } else {
-            barArray[i]++;
-          }
-        }
-      }
-    }
-  });
-
-  //If day ends and user is online, go from hour to 23 and increment
-  if (onlineSwitch == true) {
-    for (var i = hour; i < 24; i++) {
-      barArray[i]++;
-    }
-  }
-
-  return barArray;
-}
 
 function getChatTimes(rows, day) {
   var barArray = new Array(24).fill(0);
