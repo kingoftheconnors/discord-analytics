@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const db = require("./config/db");
-const { exportGraph, exportWeeklyGraph } = require("./lib/chart");
+const exportGraph = require("./lib/chart");
 const { exportChat, exportWeeklyChat } = require("./lib/chatChart");
 const { getDayNumber, getDayName } = require("./lib/time");
 const { ChatEvent, PresenceEvent } = require("./models");
