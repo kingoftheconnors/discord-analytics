@@ -50,4 +50,23 @@ describe("getActiveTimes", function() {
     expect(result).to.have.lengthOf(24);
     expect(result).to.eql(expected);
   });
+
+  it("ignores short offline events", function() {
+    var shortEvents = [
+        {
+            timestamp: moment("2019-01-25T00:00:00-0600", moment.ISO_8601).valueOf(),
+            status: "online"
+        },
+        {
+            timestamp: moment("2019-01-25T00:04:59-0600", moment.ISO_8601).valueOf(),
+            status: "offline"
+        }
+    ];
+    var expected = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    ];
+    var result = getActiveTimes(shortEvents, 5);
+    expect(result).to.have.lengthOf(24);
+    expect(result).to.eql(expected);
+  })
 });
