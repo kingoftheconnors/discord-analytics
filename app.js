@@ -9,6 +9,7 @@ const parseMention = require("./lib/user_id");
 const Discord = require("discord.js");
 const moment = require("moment");
 const exporter = require("highcharts-export-server");
+const fs = require("fs");
 const client = new Discord.Client();
 
 client.on("ready", () => {
@@ -222,7 +223,15 @@ function createGraph(msg, user, day) {
     exportGraph(barArray, user.tag).then(
       exportedChartFileName => {
         var chartAttachment = new Discord.Attachment(exportedChartFileName);
-        msg.channel.send("Here's " + user.tag + "'s chart:", chartAttachment);
+        msg.channel
+          .send("Here's " + user.tag + "'s chart:", chartAttachment)
+          .then(_msg => {
+            fs.unlinkSync(exportedChartFileName);
+          })
+          .catch(err => {
+            console.log(err);
+            fs.unlinkSync(exportedChartFileName);
+          });
       },
       err => {
         msg.channel.send("An error occurred while generating this chart.");
@@ -255,7 +264,15 @@ function createChatGraph(msg, user, day) {
       exportChat(barArray, user.tag).then(
         exportedChartFileName => {
           var chartAttachment = new Discord.Attachment(exportedChartFileName);
-          msg.channel.send("Here's " + user.tag + "'s chart:", chartAttachment);
+          msg.channel
+            .send("Here's " + user.tag + "'s chart:", chartAttachment)
+            .then(_msg => {
+              fs.unlinkSync(exportedChartFileName);
+            })
+            .catch(err => {
+              console.log(err);
+              fs.unlinkSync(exportedChartFileName);
+            });
         },
         err => {
           msg.channel.send("An error occurred while generating this chart.");
@@ -289,7 +306,15 @@ function createWeeklyChatGraph(msg, user) {
       exportWeeklyChat(barArray, user.tag).then(
         exportedChartFileName => {
           var chartAttachment = new Discord.Attachment(exportedChartFileName);
-          msg.channel.send("Here's " + user.tag + "'s chart:", chartAttachment);
+          msg.channel
+            .send("Here's " + user.tag + "'s chart:", chartAttachment)
+            .then(_msg => {
+              fs.unlinkSync(exportedChartFileName);
+            })
+            .catch(err => {
+              console.log(err);
+              fs.unlinkSync(exportedChartFileName);
+            });
         },
         err => {
           msg.channel.send("An error occurred while generating this chart.");
@@ -424,7 +449,6 @@ function getActiveTimes(rows, day) {
           ) {
             //Do nothing
           } else {
-            console.log("Adding 1 to " + i);
             barArray[i]++;
           }
         }
