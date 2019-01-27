@@ -5,7 +5,7 @@ const exportGraph = require("./lib/chart");
 const { exportChat, exportWeeklyChat } = require("./lib/chatChart");
 const { getDayNumber, getDayName } = require("./lib/time");
 const { ChatEvent, PresenceEvent } = require("./models");
-const getActiveTimes = require("./lib/getActiveTimes")
+const getActiveTimes = require("./lib/getActiveTimes");
 const parseMention = require("./lib/user_id");
 const Discord = require("discord.js");
 const moment = require("moment");
@@ -404,8 +404,6 @@ function getBestTime(msg, user, day) {
       console.log(error);
     });
 }
-
-
 
 function getChatTimes(rows, day) {
   var barArray = new Array(24).fill(0);
