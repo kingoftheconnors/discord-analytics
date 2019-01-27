@@ -70,7 +70,7 @@ client.on("message", msg => {
     var day = getDayNumber(command[2]);
     if (day === false) {
       msg.channel.send(
-        "Invalid day specified. Please enter a valid day e.g. `Sunday, Monday`"
+        "Invalid day specified. Please enter a valid day. Example: `Sunday`"
       );
       return;
     }
@@ -80,7 +80,7 @@ client.on("message", msg => {
   if (command[0] === "!chat") {
     if (command.length < 2) {
       msg.channel.send(
-        "Please specify a user and day. Example: `!active foobar#1234 Sunday, ect...`"
+        "Please specify a user and day. Example: `!active foobar#1234 Sunday`"
       );
       return;
     }
@@ -119,8 +119,19 @@ client.on("message", msg => {
       );
       return;
     }
+
+    var userId = parseMention(command[1]);
+    if (!userId) {
+      msg.channel.send(
+        "Please mention a valid username. Example: `!available @foobar#1234 Monday`"
+      );
+      return;
+    }
+
+    var user = msg.mentions.users.get(userId);
+    
     if (command.length == 2) {
-      getBestTimeAndDay(msg, command[1]);
+      getBestTimeAndDay(msg, user);
     }
     if (command.length == 3) {
       var day = getDayNumber(command[2]);
@@ -131,7 +142,7 @@ client.on("message", msg => {
         return;
       }
 
-      getBestTime(msg, command[1], day);
+      getBestTime(msg, user, day);
     }
   }
 
