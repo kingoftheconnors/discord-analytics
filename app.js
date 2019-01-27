@@ -158,13 +158,23 @@ client.on("message", msg => {
         }
       );
     } else if (command.length == 2) {
-      ChatEvent.userAttachmentCount(command[1]).then(
+
+      var userId = parseMention(command[1]);
+      if (!userId) {
+        msg.channel.send(
+          "Please mention a valid username. Example: `!available @foobar#1234 Monday`"
+        );
+        return;
+      }
+      var user = msg.mentions.users.get(userId);
+
+      ChatEvent.userAttachmentCount(user.id).then(
         result => {
-          msg.channel.send(`User attachment count: ${result.sum}`);
+          msg.channel.send(`${user.tag} has ${result.sum} attachments`);
         },
         err => {
           console.log(err);
-          msg.channel.send("An error occured while counting the attachments.");
+          msg.channel.send(`An error occured while counting ${user.tag}'s attachments.`);
         }
       );
     } else {
@@ -231,7 +241,8 @@ function createChatGraph(msg, user, day) {
   ChatEvent.byDay(user.id, day)
     .then(rows => {
       if (!(rows.length > 0)) {
-        msg.channel.send(`No such user online on that day: ${user.tag}`);
+        dayName = getDayName(day)
+        msg.channel.send(`${user.tag} was not online on ${dayName}.`);
         return;
       }
 
@@ -262,7 +273,7 @@ function createWeeklyChatGraph(msg, user) {
   ChatEvent.byWeek(user.id)
     .then(rows => {
       if (!(rows.length > 0)) {
-        msg.channel.send(`User hasn't posted any messages: ${user.tag}`);
+        msg.channel.send(`${user.tag} hasn't posted any messages.`);
         return;
       }
       var barArray = new Array(7).fill(0);
@@ -302,7 +313,7 @@ function getBestTimeAndDay(msg, user) {
     .where({ user_id: user.id })
     .then(rows => {
       if (!(rows.length > 0)) {
-        msg.channel.send(`No such user online on that day: ${user.tag}`);
+        msg.channel.send(`${user.tag} has no activity in known history`);
         return;
       }
       for (var day = 0; day < 7; day++) {
@@ -336,7 +347,8 @@ function getBestTime(msg, user, day) {
   PresenceEvent.byDay(user.id, day)
     .then(rows => {
       if (!(rows.length > 0)) {
-        msg.channel.send(`No such user online on that day: ${user.tag}`);
+        var dayName = getDayName(day);
+        msg.channel.send(`${user.tag} is not online on ${dayName}s.`);
         return;
       }
 

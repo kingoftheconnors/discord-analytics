@@ -14,11 +14,11 @@ class ChatEvent {
       .first();
   }
 
-  static userAttachmentCount(username) {
+  static userAttachmentCount(user_id) {
     return db
       .table(USER_CHAT)
       .sum("attachments")
-      .where({ username: username })
+      .where({ user_id: user_id })
       .first();
   }
 
