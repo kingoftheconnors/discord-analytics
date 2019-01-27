@@ -129,7 +129,7 @@ client.on("message", msg => {
     }
 
     var user = msg.mentions.users.get(userId);
-    
+
     if (command.length == 2) {
       getBestTimeAndDay(msg, user);
     }
@@ -158,7 +158,6 @@ client.on("message", msg => {
         }
       );
     } else if (command.length == 2) {
-
       var userId = parseMention(command[1]);
       if (!userId) {
         msg.channel.send(
@@ -174,7 +173,9 @@ client.on("message", msg => {
         },
         err => {
           console.log(err);
-          msg.channel.send(`An error occured while counting ${user.tag}'s attachments.`);
+          msg.channel.send(
+            `An error occured while counting ${user.tag}'s attachments.`
+          );
         }
       );
     } else {
@@ -241,7 +242,7 @@ function createChatGraph(msg, user, day) {
   ChatEvent.byDay(user.id, day)
     .then(rows => {
       if (!(rows.length > 0)) {
-        dayName = getDayName(day)
+        dayName = getDayName(day);
         msg.channel.send(`${user.tag} was not online on ${dayName}.`);
         return;
       }
